@@ -1,3 +1,4 @@
+<img width="1920" height="1080" alt="Screenshot (2404)" src="https://github.com/user-attachments/assets/5bc8ec4c-9ab1-44d3-b69e-d69d41677da6" />
 # QuickMove AI Ops
 
 ## Overview
