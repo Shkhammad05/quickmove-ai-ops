@@ -1,0 +1,869 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fa;
+      color: #172033;
+      max-width: 950px;
+      margin: 30px auto;
+      padding: 0 16px 40px;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .muted {
+      color: #657086;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px;
+      margin: 18px 0;
+      box-shadow: 0 2px 10px #0000000c;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      font-size: 14px;
+      margin: 15px 0 7px;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #ccd3df;
+      border-radius: 8px;
+      font: inherit;
+      background: #fff;
+      color: #172033;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid #b7cdf4;
+      border-color: #315d9b;
+    }
+
+    button {
+      background: #17365d;
+      color: white;
+      border: 0;
+      padding: 12px 17px;
+      margin: 12px 8px 0 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    button:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .secondary {
+      background: #e8edf5;
+      color: #172033;
+    }
+
+    .danger {
+      background: #8b2635;
+    }
+
+    .result {
+      background: #f5f7fb;
+      border-radius: 8px;
+      padding: 14px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .warning {
+      background: #fff6df;
+      color: #765000;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 16px;
+    }
+
+    .status {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .success {
+      color: #137333;
+    }
+
+    .error {
+      color: #b42318;
+    }
+
+    .muted-status {
+      color: #657086;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 16px;
+    }
+
+    .section-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #e8edf5;
+      color: #17365d;
+      border-radius: 6px;
+      width: 29px;
+      height: 29px;
+      margin-right: 8px;
+      font-size: 15px;
+    }
+
+    .task-item {
+      border: 1px solid #e1e6ef;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        margin-top: 18px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        margin-right: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>QuickMove AI Ops Inbox</h1>
+
+  <p class="muted">
+    Turn relocation messages into structured, reviewable updates
+    using Gemini AI. Human approval is required before changes
+    are made to operational records.
+  </p>
+
+  <!-- SECTION 1: MESSAGE INPUT -->
+  <div class="card">
+    <h2>
+      <span class="section-number">1</span>
+      Paste a message
+    </h2>
+
+    <p class="muted">
+      Paste a WhatsApp or email update. Use fictional test data
+      while developing this prototype.
+    </p>
+
+    <label for="message">Original message</label>
+
+    <textarea
+      id="message"
+      placeholder="Example: Update for QM-1001: the mover confirmed the truck will arrive at 9 AM on 18 October. The booking is confirmed."
+    ></textarea>
+
+    <button id="analyzeButton" type="button"
+      onclick="analyzeMessage()">
+      Analyze with Gemini
+    </button>
+
+    <button class="secondary" type="button"
+      onclick="clearResults()">
+      Clear
+    </button>
+
+    <p id="status" class="status muted-status" aria-live="polite">
+      Connecting to your spreadsheet...
+    </p>
+  </div>
+
+  <!-- SECTION 2: RELOCATION RECORDS -->
+  <div class="card">
+    <h2>
+      <span class="section-number">2</span>
+      Relocation records
+    </h2>
+
+    <p class="muted">
+      Records loaded from your Google Sheets Relocations tab.
+    </p>
+
+    <div id="moveDetails" class="result">
+      Loading relocation records...
+    </div>
+
+    <button class="secondary" type="button"
+      onclick="loadMoves()">
+      Reload records
+    </button>
+  </div>
+
+  <!-- SECTION 3: AI RESULTS -->
+  <div class="card">
+    <h2>
+      <span class="section-number">3</span>
+      AI analysis
+    </h2>
+
+    <label>Matched Move ID</label>
+    <div id="matchedMove" class="result">—</div>
+
+    <label>Extracted proposal</label>
+    <div id="proposalOutput" class="result">
+      Paste a message and select Analyze with Gemini.
+    </div>
+
+    <p class="warning">
+      AI output may be incomplete or incorrect. Check every field,
+      particularly the date, status and target task, before approval.
+    </p>
+  </div>
+
+  <!-- SECTION 4: HUMAN REVIEW -->
+  <div class="card" id="reviewCard">
+    <h2>
+      <span class="section-number">4</span>
+      Review and decide
+    </h2>
+
+    <p class="muted">
+      Choose the correct task and review the proposed fields.
+      Only the task you select can be updated.
+    </p>
+
+    <label for="taskSelect">Target task</label>
+    <select id="taskSelect" disabled>
+      <option value="">Analyze a message first</option>
+    </select>
+
+    <div id="selectedTaskDetails" class="task-item hidden"></div>
+
+    <label for="reviewer">Coordinator name</label>
+    <input
+      id="reviewer"
+      type="text"
+      maxlength="100"
+      placeholder="Enter the reviewing coordinator's name"
+      autocomplete="name"
+    >
+
+    <div class="grid">
+      <div>
+        <label for="workflow">Workflow</label>
+        <input id="workflow" maxlength="150">
+      </div>
+
+      <div>
+        <label for="eventType">Event type</label>
+        <input id="eventType" maxlength="150">
+      </div>
+
+      <div>
+        <label for="proposedStatus">Task status (optional)</label>
+        <input
+          id="proposedStatus"
+          maxlength="100"
+          placeholder="Leave blank to keep existing status"
+        >
+      </div>
+
+      <div>
+        <label for="eventDate">Event date</label>
+        <input
+          id="eventDate"
+          maxlength="10"
+          placeholder="YYYY-MM-DD; confirm year"
+        >
+      </div>
+
+      <div>
+        <label for="eventTime">Event time</label>
+        <input
+          id="eventTime"
+          maxlength="50"
+          placeholder="e.g. 09:00 AM"
+        >
+      </div>
+
+      <div>
+        <label for="blocker">Blocker</label>
+        <input
+          id="blocker"
+          maxlength="500"
+          placeholder="Leave blank if none"
+        >
+      </div>
+    </div>
+
+    <label for="nextAction">Next action</label>
+    <textarea
+      id="nextAction"
+      maxlength="1000"
+      placeholder="What should the coordinator do next?"
+    ></textarea>
+
+    <label for="reason">Review notes</label>
+    <textarea
+      id="reason"
+      maxlength="1000"
+      placeholder="Uncertainty, date clarification or other review notes"
+    ></textarea>
+
+    <button id="approveButton" type="button"
+      onclick="submitDecision('Approved')" disabled>
+      Approve update
+    </button>
+
+    <button id="rejectButton" type="button"
+      class="danger"
+      onclick="submitDecision('Rejected')" disabled>
+      Reject proposal
+    </button>
+
+    <p id="reviewStatus" class="status muted-status"
+      aria-live="polite">
+      Analyze a message to start the review.
+    </p>
+
+    <p class="warning">
+      Approval can update the selected task's status, blocker and
+      next action when those fields are supplied. Rejection should
+      leave the task unchanged. Both decisions are intended to be
+      recorded in Audit Log.
+    </p>
+  </div>
+
+  <script>
+    let moves = [];
+    let currentProposal = null;
+    let currentMessage = '';
+    let currentTasks = [];
+    let reviewInProgress = false;
+
+    function setStatus(message, type) {
+      const element = document.getElementById('status');
+      element.textContent = message;
+
+      if (type === 'success') {
+        element.className = 'status success';
+      } else if (type === 'error') {
+        element.className = 'status error';
+      } else {
+        element.className = 'status muted-status';
+      }
+    }
+
+    function setReviewStatus(message, type) {
+      const element = document.getElementById('reviewStatus');
+      element.textContent = message;
+
+      if (type === 'success') {
+        element.className = 'status success';
+      } else if (type === 'error') {
+        element.className = 'status error';
+      } else {
+        element.className = 'status muted-status';
+      }
+    }
+
+    function setButtonsDisabled(disabled) {
+      document.getElementById('approveButton').disabled = disabled;
+      document.getElementById('rejectButton').disabled = disabled;
+    }
+
+    function loadMoves() {
+      const details = document.getElementById('moveDetails');
+      details.textContent = 'Loading spreadsheet records...';
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          moves = data && Array.isArray(data.moves)
+            ? data.moves
+            : [];
+
+          if (moves.length === 0) {
+            details.textContent =
+              'No relocation records found. Add a test row to Relocations.';
+            setStatus(
+              'Spreadsheet connected, but no moves were found.',
+              'error'
+            );
+            return;
+          }
+
+          details.textContent = moves.map(function(move) {
+            return [
+              'Move ID: ' + move.moveId,
+              'Route: ' + (move.origin || 'Unknown') +
+                ' → ' + (move.destination || 'Unknown'),
+              'Move date: ' + (move.moveDate || 'Not set'),
+              'Status: ' + (move.status || 'Not set')
+            ].join('\n');
+          }).join('\n\n');
+
+          setStatus(
+            'Spreadsheet connected. ' + moves.length +
+            ' relocation record(s) loaded.',
+            'success'
+          );
+        })
+        .withFailureHandler(function(error) {
+          details.textContent = 'Could not load relocation records.';
+          setStatus(
+            error && error.message
+              ? error.message
+              : 'Spreadsheet connection failed.',
+            'error'
+          );
+        })
+        .getInitialData();
+    }
+
+    function analyzeMessage() {
+      if (reviewInProgress) return;
+
+      const message = document.getElementById('message')
+        .value.trim();
+
+      if (!message) {
+        setStatus('Paste a message first.', 'error');
+        return;
+      }
+
+      const button = document.getElementById('analyzeButton');
+      button.disabled = true;
+      button.textContent = 'Analyzing...';
+
+      currentProposal = null;
+      currentMessage = '';
+      currentTasks = [];
+
+      document.getElementById('matchedMove').textContent =
+        'Analyzing...';
+
+      document.getElementById('proposalOutput').textContent =
+        'Waiting for Gemini to return a structured proposal...';
+
+      resetReviewForm();
+      setStatus('Sending the message to Gemini...', 'muted');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          button.disabled = false;
+          button.textContent = 'Analyze with Gemini';
+
+          document.getElementById('matchedMove').textContent =
+            result && result.moveId
+              ? result.moveId
+              : 'No verified match';
+
+          document.getElementById('proposalOutput').textContent =
+            JSON.stringify(result, null, 2);
+
+          if (!result || !result.moveId) {
+            setStatus(
+              'Analysis completed, but no valid Move ID was matched. Review the result.',
+              'error'
+            );
+            return;
+          }
+
+          currentProposal = result;
+          currentMessage = message;
+
+          showReviewProposal(result, message);
+
+          setStatus(
+            'Gemini analysis completed. Review all fields before deciding.',
+            'success'
+          );
+        })
+        .withFailureHandler(function(error) {
+          button.disabled = false;
+          button.textContent = 'Analyze with Gemini';
+
+          document.getElementById('matchedMove').textContent =
+            'Unable to verify';
+
+          document.getElementById('proposalOutput').textContent =
+            'Analysis failed. Check the error message below.';
+
+          resetReviewForm();
+
+          setStatus(
+            error && error.message
+              ? error.message
+              : 'An unexpected error occurred.',
+            'error'
+          );
+        })
+        .analyzeWithGemini(message);
+    }
+
+    function fillReviewField(id, value) {
+      document.getElementById(id).value = value || '';
+    }
+
+    function resetReviewForm() {
+      document.getElementById('taskSelect').replaceChildren(
+        new Option('Analyze a message first', '')
+      );
+
+      document.getElementById('taskSelect').disabled = true;
+
+      document.getElementById('selectedTaskDetails').textContent = '';
+      document.getElementById('selectedTaskDetails').classList.add('hidden');
+
+      [
+        'workflow',
+        'eventType',
+        'proposedStatus',
+        'eventDate',
+        'eventTime',
+        'blocker',
+        'nextAction',
+        'reason'
+      ].forEach(function(id) {
+        fillReviewField(id, '');
+      });
+
+      setButtonsDisabled(true);
+      setReviewStatus(
+        'Analyze a message to start the review.',
+        'muted'
+      );
+    }
+
+    function showReviewProposal(result, originalMessage) {
+      currentProposal = result;
+      currentMessage = originalMessage;
+
+      fillReviewField('workflow', result.workflow);
+      fillReviewField('eventType', result.eventType);
+      fillReviewField('proposedStatus', result.proposedStatus);
+      fillReviewField('eventDate', result.eventDate);
+      fillReviewField('eventTime', result.eventTime);
+      fillReviewField('blocker', result.blocker);
+      fillReviewField('nextAction', result.nextAction);
+      fillReviewField('reason', result.reason);
+
+      loadTasksForMove(result.moveId);
+    }
+
+    function loadTasksForMove(moveId) {
+      const select = document.getElementById('taskSelect');
+
+      select.disabled = true;
+      select.replaceChildren(new Option('Loading tasks...', ''));
+
+      setButtonsDisabled(true);
+      setReviewStatus('Loading tasks for ' + moveId + '...', 'muted');
+
+      google.script.run
+        .withSuccessHandler(function(tasks) {
+          currentTasks = Array.isArray(tasks) ? tasks : [];
+          select.replaceChildren();
+
+          if (currentTasks.length === 0) {
+            select.add(new Option(
+              'No tasks found for this relocation',
+              ''
+            ));
+
+            setReviewStatus(
+              'No tasks were found. Add a task to the Tasks tab first.',
+              'error'
+            );
+            return;
+          }
+
+          select.add(new Option('Select the target task', ''));
+
+          currentTasks.forEach(function(task) {
+            const label = task.taskId + ' — ' +
+              (task.workflow || 'Unspecified workflow') +
+              ' — ' + (task.description || 'No description') +
+              ' [' + (task.status || 'No status') + ']';
+
+            select.add(new Option(label, task.taskId));
+          });
+
+          select.disabled = false;
+
+          select.onchange = updateSelectedTaskDetails;
+
+          // Only auto-select when exactly one task matches the workflow.
+          const workflow = String(
+            currentProposal && currentProposal.workflow || ''
+          ).trim().toLowerCase();
+
+          const matchingTasks = currentTasks.filter(function(task) {
+            return workflow &&
+              String(task.workflow || '').trim().toLowerCase() === workflow;
+          });
+
+          if (matchingTasks.length === 1) {
+            select.value = matchingTasks[0].taskId;
+          }
+
+          updateSelectedTaskDetails();
+
+          setReviewStatus(
+            'Choose and verify the correct task before submitting your decision.',
+            'muted'
+          );
+        })
+        .withFailureHandler(function(error) {
+          select.replaceChildren(new Option('Could not load tasks', ''));
+
+          setReviewStatus(
+            error && error.message
+              ? error.message
+              : 'Failed to load tasks.',
+            'error'
+          );
+        })
+        .getTasksForMove(moveId);
+    }
+
+    function updateSelectedTaskDetails() {
+      const taskId = document.getElementById('taskSelect').value;
+      const details = document.getElementById('selectedTaskDetails');
+
+      const task = currentTasks.find(function(item) {
+        return item.taskId === taskId;
+      });
+
+      if (!task) {
+        details.textContent = '';
+        details.classList.add('hidden');
+        setButtonsDisabled(true);
+        return;
+      }
+
+      details.textContent = [
+        'Selected task: ' + task.taskId,
+        'Workflow: ' + (task.workflow || 'Not set'),
+        'Description: ' + (task.description || 'Not set'),
+        'Current status: ' + (task.status || 'Not set'),
+        'Current blocker: ' + (task.blocker || 'None'),
+        'Current next action: ' + (task.nextAction || 'Not set')
+      ].join('\n');
+
+      details.classList.remove('hidden');
+      setButtonsDisabled(false);
+    }
+
+    function submitDecision(decision) {
+      if (reviewInProgress) return;
+
+      if (!currentProposal || !currentProposal.moveId) {
+        alert('Analyze a message with a verified Move ID first.');
+        return;
+      }
+
+      const taskId = document.getElementById('taskSelect').value;
+      const approvedBy = document.getElementById('reviewer')
+        .value.trim();
+
+      if (!taskId) {
+        alert('Select the target task first.');
+        return;
+      }
+
+      if (!approvedBy) {
+        alert('Enter the coordinator name.');
+        document.getElementById('reviewer').focus();
+        return;
+      }
+
+      if (decision === 'Approved') {
+        const eventDate = document.getElementById('eventDate')
+          .value.trim();
+
+        if (eventDate && !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+          alert('Enter the date in YYYY-MM-DD format, or leave it blank.');
+          return;
+        }
+
+        const task = currentTasks.find(function(item) {
+          return item.taskId === taskId;
+        });
+
+        if (!task) {
+          alert('The selected task could not be verified. Reload the analysis.');
+          return;
+        }
+
+        if (!confirm(
+          'Approve this proposal for task ' + taskId +
+          ' under move ' + currentProposal.moveId +
+          '?\n\nThis may update the selected task and append an audit record.'
+        )) {
+          return;
+        }
+      } else if (!confirm(
+        'Reject this proposal?\n\nThe rejection will be recorded in the audit log.'
+      )) {
+        return;
+      }
+
+      const proposal = {
+        workflow: document.getElementById('workflow').value.trim(),
+        eventType: document.getElementById('eventType').value.trim(),
+        proposedStatus: document.getElementById('proposedStatus').value.trim(),
+        eventDate: document.getElementById('eventDate').value.trim(),
+        eventTime: document.getElementById('eventTime').value.trim(),
+        blocker: document.getElementById('blocker').value.trim(),
+        nextAction: document.getElementById('nextAction').value.trim(),
+        reason: document.getElementById('reason').value.trim()
+      };
+
+      reviewInProgress = true;
+      setButtonsDisabled(true);
+      document.getElementById('analyzeButton').disabled = true;
+
+      setReviewStatus('Submitting your decision...', 'muted');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          reviewInProgress = false;
+          document.getElementById('analyzeButton').disabled = false;
+
+          if (result && result.success) {
+            setReviewStatus(
+              result.message || 'Review submitted successfully.',
+              'success'
+            );
+
+            setStatus(
+              'Review recorded: ' + decision,
+              'success'
+            );
+
+            // Prevent submitting the same proposal a second time.
+            setButtonsDisabled(true);
+          } else {
+            setButtonsDisabled(false);
+            setReviewStatus(
+              'The server did not confirm the operation.',
+              'error'
+            );
+          }
+        })
+        .withFailureHandler(function(error) {
+          reviewInProgress = false;
+          document.getElementById('analyzeButton').disabled = false;
+          setButtonsDisabled(false);
+
+          setReviewStatus(
+            error && error.message
+              ? error.message
+              : 'Review submission failed.',
+            'error'
+          );
+        })
+        .submitReview({
+          decision: decision,
+          moveId: currentProposal.moveId,
+          taskId: taskId,
+          approvedBy: approvedBy,
+          originalMessage: currentMessage,
+          proposal: proposal
+        });
+    }
+
+    function clearResults() {
+      if (reviewInProgress) {
+        setStatus(
+          'Please wait until the current review submission finishes.',
+          'error'
+        );
+        return;
+      }
+
+      document.getElementById('message').value = '';
+      document.getElementById('matchedMove').textContent = '—';
+
+      document.getElementById('proposalOutput').textContent =
+        'Paste a message and select Analyze with Gemini.';
+
+      currentProposal = null;
+      currentMessage = '';
+      currentTasks = [];
+
+      resetReviewForm();
+
+      setStatus('Ready for a new message.', 'muted');
+    }
+
+    loadMoves();
+  </script>
+</body>
+</html>
